@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Unit tests for the PyHTTP Response class.
+Unit tests for the httpy Response class.
 """
 
 import sys
@@ -11,7 +11,7 @@ import unittest
 # Add the parent directory to the path so we can import the package
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-from pyhttp import ServerResponse, HTTP_200_OK, HTTP_404_NOT_FOUND
+from httpy import ServerResponse, HTTP_200_OK, HTTP_404_NOT_FOUND
 
 
 class TestResponse(unittest.TestCase):

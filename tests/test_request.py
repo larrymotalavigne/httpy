@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Unit tests for the PyHTTP Request class.
+Unit tests for the httpy Request class.
 """
 
 import sys
@@ -11,7 +11,7 @@ import unittest
 # Add the parent directory to the path so we can import the package
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-from pyhttp import ServerRequest
+from httpy import ServerRequest
 
 
 class TestRequest(unittest.TestCase):

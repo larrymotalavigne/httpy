@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Unit tests for the PyHTTP server functionality.
+Unit tests for the HTTPy server functionality.
 """
 
 import sys
@@ -13,9 +13,9 @@ from unittest.mock import patch, MagicMock, AsyncMock
 # Add the parent directory to the path so we can import the package
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-from pyhttp import ServerRequest, ServerResponse, get, run
-from pyhttp.routing import ROUTES
-from pyhttp.server import handle_socket
+from httpy import ServerRequest, ServerResponse, get, run
+from httpy.routing import ROUTES
+from httpy.server import handle_socket
 
 
 class TestServer(unittest.IsolatedAsyncioTestCase):
@@ -49,7 +49,7 @@ class TestServer(unittest.IsolatedAsyncioTestCase):
         async def test_handler(req):
             return ServerResponse.text("Test Response")
 
-        from pyhttp.routing import Route
+        from httpy.routing import Route
         ROUTES.append(Route("GET", "/test", test_handler))
 
         # Call handle_socket
@@ -87,7 +87,7 @@ class TestServer(unittest.IsolatedAsyncioTestCase):
         mock_loop.sock_accept.return_value = (mock_client_socket, ('127.0.0.1', 12345))
 
         # Import run directly to avoid running the actual server
-        from pyhttp.server import run
+        from httpy.server import run
 
         # Call run (this will enter an infinite loop, so we'll need to break out)
         mock_loop.sock_accept.side_effect = KeyboardInterrupt()  # Break the loop

@@ -1,4 +1,4 @@
-# PyHTTP
+# HTTPy
 
 A simple, intuitive HTTP server library for Python.
 
@@ -16,7 +16,7 @@ A simple, intuitive HTTP server library for Python.
 ```bash
 # Not yet available on PyPI
 # Clone the repository
-git clone https://github.com/LarryMotaLavigne/pyhttp.git
+git clone https://github.com/LarryMotaLavigne/httpy.git
 
 # Install in development mode
 pip install -e .
@@ -28,7 +28,7 @@ pip install -e .
 
 ```python
 import asyncio
-from pyhttp import get, post, ServerRequest, ServerResponse, run
+from httpy import get, post, ServerRequest, ServerResponse, run
 
 # Define routes using decorators
 @get("/")
@@ -58,7 +58,7 @@ if __name__ == "__main__":
 
 ```python
 import asyncio
-from pyhttp import (
+from httpy import (
     get, post, put, delete, 
     ServerRequest, ServerResponse, 
     HTTP_200_OK, HTTP_201_CREATED, HTTP_404_NOT_FOUND,
@@ -167,13 +167,29 @@ Represents an HTTP response from the server.
 
 ```python
 import asyncio
-from pyhttp import run
+from httpy import run
 
 # Define your routes...
 
 if __name__ == "__main__":
     asyncio.run(run(host="localhost", port=8080))
 ```
+
+## Benchmarks
+
+HTTPy includes benchmarking tools to compare its performance with other popular Python web frameworks like Starlette, Flask, and Tornado.
+
+To run the benchmarks:
+
+```bash
+# Install benchmark dependencies
+pip install flask tornado starlette uvicorn psutil
+
+# Run the benchmark
+python benchmark/benchmark.py
+```
+
+For more details, see the [benchmark README](benchmark/README.md).
 
 ## License
 
