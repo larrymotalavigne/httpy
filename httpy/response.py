@@ -8,7 +8,7 @@ import json
 import io
 from typing import Dict, Any, Optional, Union, Callable
 
-from .http import HTTP_STATUS_CODES
+from .status import HTTP_STATUS_CODES
 
 # Cache of status lines for common status codes
 STATUS_LINE_CACHE = {

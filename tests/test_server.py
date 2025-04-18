@@ -28,12 +28,20 @@ class TestServer(unittest.IsolatedAsyncioTestCase):
 
     @patch('asyncio.get_event_loop')
     @patch('httpy.server.asyncio.get_event_loop')
-    async def test_handle_socket(self, mock_server_get_loop, mock_get_loop):
+    @patch('asyncio.open_connection')
+    @patch('httpy.server.asyncio.open_connection')
+    async def test_handle_socket(self, mock_server_open_connection, mock_open_connection, mock_server_get_loop, mock_get_loop):
         """Test handle_socket function."""
         # Set up mocks
         mock_loop = AsyncMock()
         mock_get_loop.return_value = mock_loop
         mock_server_get_loop.return_value = mock_loop
+
+        # Mock StreamReader and StreamWriter
+        mock_reader = AsyncMock()
+        mock_writer = AsyncMock()
+        mock_open_connection.return_value = (mock_reader, mock_writer)
+        mock_server_open_connection.return_value = (mock_reader, mock_writer)
 
         # Mock socket
         mock_socket = MagicMock()

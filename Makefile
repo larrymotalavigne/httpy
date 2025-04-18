@@ -1,4 +1,4 @@
-.PHONY: test install benchmark clean
+.PHONY: test install benchmark clean build
 
 # Default target
 all: test
@@ -26,3 +26,7 @@ clean:
 	rm -rf *.egg-info
 	rm -rf build
 	rm -rf dist
+
+# Build Docker image
+build:
+	docker build -t httpy:latest .

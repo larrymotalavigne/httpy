@@ -1,0 +1,97 @@
+name: Docker Build and Publish
+
+on:
+  push:
+    branches: [ main ]
+    tags: [ 'v*' ]
+  pull_request:
+    branches: [ main ]
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    strategy:
+      matrix:
+        python-version: ['3.9', '3.10', '3.11', '3.12', '3.13']
+        platform: [linux/amd64, linux/arm64]
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v2
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Log in to the Container registry
+        uses: docker/login-action@v2
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata (tags, labels) for Docker
+        id: meta
+        uses: docker/metadata-action@v4
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=semver,pattern={{version}}-python${{ matrix.python-version }}
+            type=semver,pattern={{major}}.{{minor}}-python${{ matrix.python-version }}
+            type=ref,event=branch,suffix=-python${{ matrix.python-version }}
+            type=ref,event=pr,suffix=-python${{ matrix.python-version }}
+            type=sha,format=short,suffix=-python${{ matrix.python-version }}
+            type=raw,value=python${{ matrix.python-version }},enable=${{ github.ref == format('refs/heads/{0}', github.event.repository.default_branch) }}
+
+      - name: Generate Dockerfile for Python version
+        run: |
+          # Update both Python version references in the Dockerfile
+          sed -i "s/FROM python:3.9-slim as builder/FROM python:${{ matrix.python-version }}-slim as builder/g" Dockerfile
+          sed -i "s/FROM python:3.9-slim as app-image/FROM python:${{ matrix.python-version }}-slim as app-image/g" Dockerfile
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v4
+        with:
+          context: .
+          platforms: ${{ matrix.platform }}
+          push: ${{ github.event_name != 'pull_request' }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  # Create a manifest for the latest tag that includes all Python versions
+  create-manifest:
+    needs: build-and-push
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    permissions:
+      packages: write
+    steps:
+      - name: Log in to the Container registry
+        uses: docker/login-action@v2
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Create and push manifest for latest
+        if: github.ref == format('refs/heads/{0}', github.event.repository.default_branch)
+        run: |
+          REPO="${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ github.event.repository.name }}"
+          docker manifest create $REPO:latest \
+            $REPO:python3.9 \
+            $REPO:python3.10 \
+            $REPO:python3.11 \
+            $REPO:python3.12 \
+            $REPO:python3.13
+          docker manifest push $REPO:latest
