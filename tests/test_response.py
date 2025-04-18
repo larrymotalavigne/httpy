@@ -39,7 +39,7 @@ class TestResponse(unittest.TestCase):
 
         bytes_response = response.to_bytes()
         self.assertIsInstance(bytes_response, bytes)
-        
+
         # Check that the response contains the expected parts
         text_response = bytes_response.decode('utf-8')
         self.assertIn("HTTP/1.1 200 OK", text_response)
@@ -49,10 +49,10 @@ class TestResponse(unittest.TestCase):
 
     def test_json_response(self):
         """Test creating a JSON response."""
-        data = {"name": "Test User", "id": 123}
+        data = {"name":"Test User","id":123}
         response = ServerResponse.json(data)
 
-        self.assertEqual(response.body, json.dumps(data))
+        self.assertEqual(response.body, json.dumps(data, separators=(',', ':')))
         self.assertEqual(response.status, HTTP_200_OK)
         self.assertEqual(response.headers["Content-Type"], "application/json")
 

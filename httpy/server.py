@@ -124,7 +124,7 @@ async def handle_socket(client_sock: socket.socket) -> None:
             # Route matching
             for route in ROUTES:
                 path_params = route.match(method, path)
-                if path_params:
+                if path_params is not None:  # Check if path_params is not None instead of truthy
                     req = Request(method, path, headers, body.decode('utf-8', errors='replace'), path_params, query_params)
                     if method == "HEAD":
                         req.method = "GET"

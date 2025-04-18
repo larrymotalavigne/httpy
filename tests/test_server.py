@@ -27,20 +27,33 @@ class TestServer(unittest.IsolatedAsyncioTestCase):
         ROUTES.clear()
 
     @patch('asyncio.get_event_loop')
-    async def test_handle_socket(self, mock_get_loop):
+    @patch('httpy.server.asyncio.get_event_loop')
+    async def test_handle_socket(self, mock_server_get_loop, mock_get_loop):
         """Test handle_socket function."""
         # Set up mocks
         mock_loop = AsyncMock()
         mock_get_loop.return_value = mock_loop
+        mock_server_get_loop.return_value = mock_loop
 
         # Mock socket
         mock_socket = MagicMock()
 
-        # Mock sock_recv to return HTTP request data
-        mock_loop.sock_recv.side_effect = [
-            b"GET /test HTTP/1.1\r\nHost: localhost\r\n\r\n",
-            b"",  # Empty response to break the loop
-        ]
+        # Mock sock_recv_into to simulate receiving HTTP request data
+        # We'll use a side effect function to control the behavior
+        call_count = 0
+        def sock_recv_into_side_effect(sock, buffer_view):
+            nonlocal call_count
+            if call_count == 0:
+                # First call: write the request data into the buffer
+                data = b"GET /test HTTP/1.1\r\nHost: localhost\r\nConnection: close\r\n\r\n"
+                buffer_view[:len(data)] = data
+                call_count += 1
+                return len(data)
+            else:
+                # Subsequent calls: return 0 to indicate end of data
+                return 0
+
+        mock_loop.sock_recv_into.side_effect = sock_recv_into_side_effect
 
         # Clear the ROUTES list and set up a test route
         ROUTES.clear()
@@ -52,8 +65,12 @@ class TestServer(unittest.IsolatedAsyncioTestCase):
         from httpy.routing import Route
         ROUTES.append(Route("GET", "/test", test_handler))
 
-        # Call handle_socket
-        await handle_socket(mock_socket)
+        # Set a timeout for the test to prevent hanging
+        try:
+            # Call handle_socket with a timeout
+            await asyncio.wait_for(handle_socket(mock_socket), timeout=5.0)
+        except asyncio.TimeoutError:
+            self.fail("handle_socket timed out, indicating it might be stuck in a loop")
 
         # Check that sock_sendall was called with a response
         mock_loop.sock_sendall.assert_called()
@@ -70,7 +87,8 @@ class TestServer(unittest.IsolatedAsyncioTestCase):
 
     @patch('socket.socket')
     @patch('asyncio.get_event_loop')
-    async def test_run(self, mock_get_loop, mock_socket_class):
+    @patch('httpy.server.asyncio.get_event_loop')
+    async def test_run(self, mock_server_get_loop, mock_get_loop, mock_socket_class):
         """Test run function."""
         # This test is more complex as it involves testing the server startup
         # We'll just test that the socket is set up correctly
@@ -78,24 +96,40 @@ class TestServer(unittest.IsolatedAsyncioTestCase):
         # Set up mocks
         mock_loop = AsyncMock()
         mock_get_loop.return_value = mock_loop
+        mock_server_get_loop.return_value = mock_loop
 
         mock_socket_instance = MagicMock()
         mock_socket_class.return_value = mock_socket_instance
 
         # Mock sock_accept to return a client socket and address
         mock_client_socket = MagicMock()
-        mock_loop.sock_accept.return_value = (mock_client_socket, ('127.0.0.1', 12345))
+
+        # Instead of using KeyboardInterrupt, we'll use a side effect function
+        # that raises an exception after the first call
+        call_count = 0
+        def sock_accept_side_effect(*args, **kwargs):
+            nonlocal call_count
+            if call_count == 0:
+                call_count += 1
+                return (mock_client_socket, ('127.0.0.1', 12345))
+            else:
+                raise Exception("Stop the loop")
+
+        mock_loop.sock_accept.side_effect = sock_accept_side_effect
 
         # Import run directly to avoid running the actual server
         from httpy.server import run
 
-        # Call run (this will enter an infinite loop, so we'll need to break out)
-        mock_loop.sock_accept.side_effect = KeyboardInterrupt()  # Break the loop
-
+        # Call run (this will enter an infinite loop, but our side effect will break it)
         try:
-            await run(host="localhost", port=8080)
-        except KeyboardInterrupt:
-            pass
+            # Add a timeout to prevent hanging if the side effect doesn't work
+            await asyncio.wait_for(run(host="localhost", port=8080), timeout=5.0)
+            self.fail("run should have raised an exception but didn't")
+        except asyncio.TimeoutError:
+            self.fail("run timed out, indicating it might be stuck in a loop")
+        except Exception as e:
+            if str(e) != "Stop the loop":
+                raise  # Re-raise if it's not our expected exception
 
         # Check that the socket was set up correctly
         mock_socket_class.assert_called_once_with(socket.AF_INET, socket.SOCK_STREAM)

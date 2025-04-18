@@ -38,16 +38,16 @@ class Route:
         Returns:
             A tuple of (compiled regex, list of parameter names)
         """
-        pattern = "^"
+        pattern = "^/?"  # Start with optional leading slash
         param_names = []
         for part in path.strip("/").split("/"):
             if part.startswith("{") and part.endswith("}"):
                 name = part[1:-1]
                 param_names.append(name)
-                pattern += rf"/(?P<{name}>[^/]+)"
+                pattern += rf"(?P<{name}>[^/]+)/"
             else:
-                pattern += f"/{part}"
-        pattern += "/?$"
+                pattern += f"{part}/"
+        pattern = pattern.rstrip("/") + "/?$"  # End with optional trailing slash
         return re.compile(pattern), param_names
 
     def match(self, method: str, path: str) -> Optional[Dict[str, str]]:
