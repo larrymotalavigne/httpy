@@ -1,0 +1,81 @@
+name: Linting
+
+on:
+  schedule:
+    - cron: '0 2 * * 1' # Runs every Monday at 2:00 AM UTC
+  workflow_dispatch: # Allows manual trigger from GitHub UI
+
+permissions:
+  contents: write
+  pull-requests: write
+
+env:
+  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out the code
+        uses: actions/checkout@v4
+        with:
+          ref: develop
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+
+      - name: Ensure [tool.ruff] exists and update configuration in pyproject.toml
+        run: |
+          if grep -q "\[tool.ruff\]" pyproject.toml; then
+            # If [tool.ruff] exists, update the configuration
+            sed -i '/\[tool.ruff\]/,/^$/ s/^line-length.*/line-length = 140/' pyproject.toml
+            sed -i '/\[tool.ruff\]/,/^$/ s/^lint.ignore.*/lint.ignore = ["E711"]/' pyproject.toml
+          else
+            # If [tool.ruff] does not exist, add it to the file
+            echo "" >> pyproject.toml
+            echo "[tool.ruff]" >> pyproject.toml
+            echo "# Add other configuration settings as needed" >> pyproject.toml
+            echo "line-length = 140" >> pyproject.toml
+            echo "# Disable specific rules" >> pyproject.toml
+            echo 'lint.ignore = ["E711"]' >> pyproject.toml
+          fi
+
+      - name: Install Ruff
+        run: pip install ruff
+
+      - name: Run Linter
+        run: ruff check . --fix || true
+
+      - name: Run Formatter
+        run: ruff format || true
+
+      - name: Check for changes
+        id: git_diff
+        run: |
+          git config --global user.name 'Github Actions'
+          git config --global user.email 'nicolas.juignet@fedex.com'
+          git diff --exit-code || echo "files_changed=true" >> $GITHUB_ENV
+
+      - name: Commit and push changes
+        if: env.files_changed == 'true'
+        run: |
+          git checkout -B ruff-fixes
+          git add .
+          git commit -m "ci: Apply Ruff fixes [B-111111]" || echo "No changes to commit"
+          git push origin ruff-fixes --force
+
+      - name: Install GitHub CLI
+        if: env.files_changed == 'true'
+        run: sudo apt-get install -y gh
+
+      - name: Create Pull Request
+        if: env.files_changed == 'true'
+        run: |
+          if gh pr list --base develop --head ruff-fixes --json number --jq '. | length' | grep -q '1'; then
+            echo "PR already exists. Skipping creation."
+          else
+            gh pr create --fill --title "ci: Apply Ruff fixes [B-111111]" --body "This PR applies Ruff fixes to the codebase." --base develop
+          fi

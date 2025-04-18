@@ -12,7 +12,7 @@ from unittest.mock import AsyncMock
 # Add the parent directory to the path so we can import the package
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-from httpy import ServerRequest, ServerResponse, Route, get, post, put, delete, route
+from httpy import Request, Response, Route, get, post, put, delete, route
 from httpy.routing import ROUTES
 
 
@@ -27,7 +27,7 @@ class TestRoute(unittest.TestCase):
     def test_route_init(self):
         """Test Route initialization."""
         async def handler(req):
-            return ServerResponse.text("Test")
+            return Response.text("Test")
 
         route_obj = Route("GET", "/api/users/{id}", handler)
 
@@ -41,7 +41,7 @@ class TestRoute(unittest.TestCase):
     def test_route_match(self):
         """Test route matching."""
         async def handler(req):
-            return ServerResponse.text("Test")
+            return Response.text("Test")
 
         route_obj = Route("GET", "/api/users/{id}", handler)
 
@@ -61,7 +61,7 @@ class TestRoute(unittest.TestCase):
         """Test route decorator."""
         @route("GET", "/test")
         async def test_handler(req):
-            return ServerResponse.text("Test")
+            return Response.text("Test")
 
         self.assertEqual(len(ROUTES), 1)
         self.assertEqual(ROUTES[0].method, "GET")
@@ -71,19 +71,19 @@ class TestRoute(unittest.TestCase):
         """Test HTTP method decorators."""
         @get("/get")
         async def get_handler(req):
-            return ServerResponse.text("GET")
+            return Response.text("GET")
 
         @post("/post")
         async def post_handler(req):
-            return ServerResponse.text("POST")
+            return Response.text("POST")
 
         @put("/put")
         async def put_handler(req):
-            return ServerResponse.text("PUT")
+            return Response.text("PUT")
 
         @delete("/delete")
         async def delete_handler(req):
-            return ServerResponse.text("DELETE")
+            return Response.text("DELETE")
 
         self.assertEqual(len(ROUTES), 4)
 

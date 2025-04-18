@@ -30,26 +30,26 @@ pip install -e .
 
 ```python
 import asyncio
-from httpy import get, post, ServerRequest, ServerResponse, run
+from httpy import get, post, Request, Response, run
 
 # Define routes using decorators
 @get("/")
-async def homepage(req: ServerRequest) -> ServerResponse:
-    return ServerResponse.text("Hello, World!")
+async def homepage(req: Request) -> Response:
+    return Response.text("Hello, World!")
 
 @get("/users/{id}")
-async def get_user(req: ServerRequest) -> ServerResponse:
+async def get_user(req: Request) -> Response:
     user_id = req.path_params['id']
-    return ServerResponse.json({"id": user_id, "name": "Example User"})
+    return Response.json({"id": user_id, "name": "Example User"})
 
 @post("/users")
-async def create_user(req: ServerRequest) -> ServerResponse:
+async def create_user(req: Request) -> Response:
     data = req.json()
     if not data:
-        return ServerResponse.json({"error": "Invalid JSON"}, status=400)
+        return Response.json({"error": "Invalid JSON"}, status=400)
 
     # Process the data...
-    return ServerResponse.json({"id": 123, "name": data.get("name")}, status=201)
+    return Response.json({"id": 123, "name": data.get("name")}, status=201)
 
 # Run the server
 if __name__ == "__main__":
@@ -62,7 +62,7 @@ if __name__ == "__main__":
 import asyncio
 from httpy import (
     get, post, put, delete, 
-    ServerRequest, ServerResponse, 
+    Request, Response, 
     HTTP_200_OK, HTTP_201_CREATED, HTTP_404_NOT_FOUND,
     run
 )
@@ -71,47 +71,47 @@ from httpy import (
 users = {}
 
 @get("/api/users")
-async def get_users(req: ServerRequest) -> ServerResponse:
-    return ServerResponse.json(list(users.values()))
+async def get_users(req: Request) -> Response:
+    return Response.json(list(users.values()))
 
 @get("/api/users/{id}")
-async def get_user(req: ServerRequest) -> ServerResponse:
+async def get_user(req: Request) -> Response:
     user_id = req.path_params['id']
     if user_id in users:
-        return ServerResponse.json(users[user_id])
-    return ServerResponse.json({"error": "User not found"}, status=HTTP_404_NOT_FOUND)
+        return Response.json(users[user_id])
+    return Response.json({"error": "User not found"}, status=HTTP_404_NOT_FOUND)
 
 @post("/api/users")
-async def create_user(req: ServerRequest) -> ServerResponse:
+async def create_user(req: Request) -> Response:
     data = req.json()
     if not data or "name" not in data:
-        return ServerResponse.json({"error": "Invalid user data"}, status=400)
+        return Response.json({"error": "Invalid user data"}, status=400)
 
     user_id = str(len(users) + 1)
     users[user_id] = {"id": user_id, "name": data["name"]}
-    return ServerResponse.json(users[user_id], status=HTTP_201_CREATED)
+    return Response.json(users[user_id], status=HTTP_201_CREATED)
 
 @put("/api/users/{id}")
-async def update_user(req: ServerRequest) -> ServerResponse:
+async def update_user(req: Request) -> Response:
     user_id = req.path_params['id']
     if user_id not in users:
-        return ServerResponse.json({"error": "User not found"}, status=HTTP_404_NOT_FOUND)
+        return Response.json({"error": "User not found"}, status=HTTP_404_NOT_FOUND)
 
     data = req.json()
     if not data:
-        return ServerResponse.json({"error": "Invalid user data"}, status=400)
+        return Response.json({"error": "Invalid user data"}, status=400)
 
     users[user_id].update(data)
-    return ServerResponse.json(users[user_id])
+    return Response.json(users[user_id])
 
 @delete("/api/users/{id}")
-async def delete_user(req: ServerRequest) -> ServerResponse:
+async def delete_user(req: Request) -> Response:
     user_id = req.path_params['id']
     if user_id not in users:
-        return ServerResponse.json({"error": "User not found"}, status=HTTP_404_NOT_FOUND)
+        return Response.json({"error": "User not found"}, status=HTTP_404_NOT_FOUND)
 
     del users[user_id]
-    return ServerResponse.json({"success": True})
+    return Response.json({"success": True})
 
 if __name__ == "__main__":
     asyncio.run(run(host="localhost", port=8080))
@@ -138,7 +138,7 @@ Example:
 async def get_user(request):
     user_id = request.path_params['id']
     # ...
-    return ServerResponse.json({"id": user_id, "name": "John"})
+    return Response.json({"id": user_id, "name": "John"})
 
 @websocket("/ws")
 async def websocket_handler(ws):
@@ -152,7 +152,7 @@ async def websocket_handler(ws):
             break
 ```
 
-### ServerRequest
+### Request
 
 Represents an HTTP request to the server.
 
@@ -168,7 +168,7 @@ Represents an HTTP request to the server.
 
 - `json()`: Parse the request body as JSON
 
-### ServerResponse
+### Response
 
 Represents an HTTP response from the server.
 

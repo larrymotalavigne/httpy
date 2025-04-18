@@ -3,47 +3,50 @@
 Server usage examples for the HTTPy library.
 """
 
-import sys
-import os
 import asyncio
+import os
 import ssl
-import json
+import sys
 import time
 
 # Add the parent directory to the path so we can import the package
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 from httpy import (
-    ServerResponse, ServerRequest, get, post, put, delete, websocket, run,
-    HTTP_200_OK, HTTP_201_CREATED, HTTP_404_NOT_FOUND,
-    WebSocketConnection
+    Response, Request, get, post, put, delete, websocket, run,
+    HTTP_201_CREATED, HTTP_404_NOT_FOUND,
+    WebSocketConnection, HTTP_400_BAD_REQUEST
 )
+
 
 # Define some example routes
 
 @get("/")
-async def homepage(req: ServerRequest) -> ServerResponse:
+async def homepage(req: Request) -> Response:
     """Handle requests to the homepage."""
-    return ServerResponse.text("Welcome to the HTTPy Server Example!")
+    return Response.text("Welcome to the HTTPy Server Example!")
+
 
 @get("/hello/{name}")
-async def hello(req: ServerRequest) -> ServerResponse:
+async def hello(req: Request) -> Response:
     """Handle requests to /hello/{name}."""
     name = req.path_params['name']
-    return ServerResponse.text(f"Hello, {name}!")
+    return Response.text(f"Hello, {name}!")
+
 
 @get("/api/users")
-async def get_users(req: ServerRequest) -> ServerResponse:
+async def get_users(req: Request) -> Response:
     """Return a list of users."""
     users = [
         {"id": 1, "name": "Alice", "email": "alice@example.com"},
         {"id": 2, "name": "Bob", "email": "bob@example.com"},
         {"id": 3, "name": "Charlie", "email": "charlie@example.com"}
     ]
-    return ServerResponse.json(users)
+    return Response.json(users)
+
 
 @get("/api/users/{id}")
-async def get_user(req: ServerRequest) -> ServerResponse:
+async def get_user(req: Request) -> Response:
     """Return a specific user by ID."""
     user_id = req.path_params['id']
     # Simulate database lookup
@@ -54,16 +57,17 @@ async def get_user(req: ServerRequest) -> ServerResponse:
     }
 
     if user_id in users:
-        return ServerResponse.json(users[user_id])
+        return Response.json(users[user_id])
     else:
-        return ServerResponse.json({"error": "User not found"}, status=HTTP_404_NOT_FOUND)
+        return Response.json({"error": "User not found"}, status=HTTP_404_NOT_FOUND)
+
 
 @post("/api/users")
-async def create_user(req: ServerRequest) -> ServerResponse:
+async def create_user(req: Request) -> Response:
     """Create a new user."""
     data = req.json()
     if not data:
-        return ServerResponse.json({"error": "Invalid JSON"}, status=HTTP_400_BAD_REQUEST)
+        return Response.json({"error": "Invalid JSON"}, status=HTTP_400_BAD_REQUEST)
 
     # Simulate user creation
     new_user = {
@@ -72,36 +76,40 @@ async def create_user(req: ServerRequest) -> ServerResponse:
         "email": data.get("email", "unknown@example.com")
     }
 
-    return ServerResponse.json(new_user, status=HTTP_201_CREATED)
+    return Response.json(new_user, status=HTTP_201_CREATED)
+
 
 @put("/api/users/{id}")
-async def update_user(req: ServerRequest) -> ServerResponse:
+async def update_user(req: Request) -> Response:
     """Update an existing user."""
     user_id = req.path_params['id']
     data = req.json()
 
     if not data:
-        return ServerResponse.json({"error": "Invalid JSON"}, status=HTTP_400_BAD_REQUEST)
+        return Response.json({"error": "Invalid JSON"}, status=HTTP_400_BAD_REQUEST)
 
     # Simulate database update
-    return ServerResponse.json({
+    return Response.json({
         "id": int(user_id),
         "name": data.get("name", "Updated User"),
         "email": data.get("email", "updated@example.com"),
         "updated": True
     })
 
+
 @delete("/api/users/{id}")
-async def delete_user(req: ServerRequest) -> ServerResponse:
+async def delete_user(req: Request) -> Response:
     """Delete a user."""
     user_id = req.path_params['id']
     # Simulate user deletion
-    return ServerResponse.json({"success": True, "message": f"User {user_id} deleted"})
+    return Response.json({"success": True, "message": f"User {user_id} deleted"})
+
 
 @post("/echo")
-async def echo(req: ServerRequest) -> ServerResponse:
+async def echo(req: Request) -> Response:
     """Echo back the request body."""
-    return ServerResponse.text(req.body)
+    return Response.text(req.body)
+
 
 # WebSocket examples
 
@@ -147,6 +155,7 @@ async def websocket_handler(ws: WebSocketConnection) -> None:
             await ws.close()
         print("WebSocket connection closed")
 
+
 @websocket("/ws/chat/{room}")
 async def chat_room(ws: WebSocketConnection) -> None:
     """Example of a chat room with path parameters."""
@@ -183,6 +192,7 @@ async def chat_room(ws: WebSocketConnection) -> None:
     finally:
         if not ws.closed:
             await ws.close()
+
 
 if __name__ == "__main__":
     print("Starting HTTPy Server Example")
@@ -223,6 +233,7 @@ if __name__ == "__main__":
         print("You can generate self-signed certificates with:")
         print("  openssl req -x509 -newkey rsa:4096 -keyout key.pem -out cert.pem -days 365 -nodes")
 
+
     # Define async function to run the server
     async def start_server():
         try:
@@ -262,6 +273,7 @@ if __name__ == "__main__":
                 await run(host="0.0.0.0", port=8080)
         except Exception as e:
             print(f"\nServer error: {e}")
+
 
     try:
         # Run the server

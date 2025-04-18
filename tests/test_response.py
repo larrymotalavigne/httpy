@@ -11,7 +11,7 @@ import unittest
 # Add the parent directory to the path so we can import the package
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-from httpy import ServerResponse, HTTP_200_OK, HTTP_404_NOT_FOUND
+from httpy import Response, HTTP_200_OK, HTTP_404_NOT_FOUND
 
 
 class TestResponse(unittest.TestCase):
@@ -19,7 +19,7 @@ class TestResponse(unittest.TestCase):
 
     def test_init(self):
         """Test Response initialization."""
-        response = ServerResponse(
+        response = Response(
             body="Hello, world!",
             status=HTTP_200_OK,
             headers={"Content-Type": "text/plain"}
@@ -31,7 +31,7 @@ class TestResponse(unittest.TestCase):
 
     def test_to_bytes(self):
         """Test converting response to bytes."""
-        response = ServerResponse(
+        response = Response(
             body="Hello, world!",
             status=HTTP_200_OK,
             headers={"Content-Type": "text/plain"}
@@ -50,7 +50,7 @@ class TestResponse(unittest.TestCase):
     def test_json_response(self):
         """Test creating a JSON response."""
         data = {"name":"Test User","id":123}
-        response = ServerResponse.json(data)
+        response = Response.json(data)
 
         self.assertEqual(response.body, json.dumps(data, separators=(',', ':')))
         self.assertEqual(response.status, HTTP_200_OK)
@@ -59,7 +59,7 @@ class TestResponse(unittest.TestCase):
     def test_text_response(self):
         """Test creating a text response."""
         text = "Hello, world!"
-        response = ServerResponse.text(text)
+        response = Response.text(text)
 
         self.assertEqual(response.body, text)
         self.assertEqual(response.status, HTTP_200_OK)
@@ -67,7 +67,7 @@ class TestResponse(unittest.TestCase):
 
     def test_custom_status(self):
         """Test response with custom status code."""
-        response = ServerResponse.json(
+        response = Response.json(
             {"error": "Not Found"},
             status=HTTP_404_NOT_FOUND
         )

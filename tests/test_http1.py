@@ -13,7 +13,7 @@ from unittest.mock import patch, MagicMock, AsyncMock
 # Add the parent directory to the path so we can import the package
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-from httpy import ServerRequest, ServerResponse, get
+from httpy import Request, Response, get
 from httpy.routing import ROUTES
 from httpy.http1 import handle_http1_connection, handle_http1_request
 
@@ -85,7 +85,7 @@ class TestHTTP1(unittest.IsolatedAsyncioTestCase):
         with patch('httpy.http1.handle_http1_request') as mock_handle_request:
             # First call returns a request, second call returns (False, None) to end the loop
             mock_handle_request.side_effect = [
-                (True, ServerRequest("GET", "/test", {"Host": "localhost"}, "", {}, {})),
+                (True, Request("GET", "/test", {"Host": "localhost"}, "", {}, {})),
                 (False, None)
             ]
 
@@ -94,7 +94,7 @@ class TestHTTP1(unittest.IsolatedAsyncioTestCase):
 
             # Create a Route object directly instead of using the decorator
             async def test_handler(req):
-                return ServerResponse.text("Test Response")
+                return Response.text("Test Response")
 
             from httpy.routing import Route
             ROUTES.append(Route("GET", "/test", test_handler))

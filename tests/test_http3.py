@@ -24,7 +24,7 @@ try:
 except ImportError:
     SKIP_HTTP3_TESTS = True
 
-from httpy import ServerRequest, ServerResponse, get
+from httpy import Request, Response, get
 from httpy.routing import ROUTES
 
 

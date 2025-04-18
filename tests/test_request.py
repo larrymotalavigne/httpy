@@ -11,7 +11,7 @@ import unittest
 # Add the parent directory to the path so we can import the package
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-from httpy import ServerRequest
+from httpy import Request
 
 
 class TestRequest(unittest.TestCase):
@@ -19,7 +19,7 @@ class TestRequest(unittest.TestCase):
 
     def test_init(self):
         """Test Request initialization."""
-        request = ServerRequest(
+        request = Request(
             method="GET",
             path="/api/users/123",
             headers={"Content-Type": "application/json"},
@@ -39,7 +39,7 @@ class TestRequest(unittest.TestCase):
         data = {"name": "Test User", "email": "test@example.com"}
         json_body = json.dumps(data)
         
-        request = ServerRequest(
+        request = Request(
             method="POST",
             path="/api/users",
             headers={"Content-Type": "application/json"},
@@ -51,7 +51,7 @@ class TestRequest(unittest.TestCase):
         self.assertEqual(parsed_data, data)
         
         # Invalid JSON
-        request = ServerRequest(
+        request = Request(
             method="POST",
             path="/api/users",
             headers={"Content-Type": "application/json"},

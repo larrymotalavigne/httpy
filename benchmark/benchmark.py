@@ -21,7 +21,7 @@ def generate_large_payload(size=100):
 
 # Function to start the httpy server
 def start_httpy_server(queue):
-    from httpy import ServerResponse, get, post, route, run
+    from httpy import Response, get, post, route, run
     import os
     import json
 
@@ -31,33 +31,33 @@ def start_httpy_server(queue):
     # Simple endpoints
     @get("/")
     async def homepage(req):
-        return ServerResponse.text("Hello, World!")
+        return Response.text("Hello, World!")
 
     @get("/json")
     async def json_endpoint(req):
-        return ServerResponse.json({"message": "Hello, World!"})
+        return Response.json({"message": "Hello, World!"})
 
     # Endpoints with larger payloads
     @get("/large-json")
     async def large_json_endpoint(req):
-        return ServerResponse.json(generate_large_payload())
+        return Response.json(generate_large_payload())
 
     # Endpoints with path parameters
     @get("/users/{user_id}")
     async def get_user(req):
         user_id = req.path_params['user_id']
-        return ServerResponse.json({"user_id": user_id, "name": f"User {user_id}"})
+        return Response.json({"user_id": user_id, "name": f"User {user_id}"})
 
     @get("/users/{user_id}/posts/{post_id}")
     async def get_user_post(req):
         user_id = req.path_params['user_id']
         post_id = req.path_params['post_id']
-        return ServerResponse.json({"user_id": user_id, "post_id": post_id, "title": f"Post {post_id} by User {user_id}"})
+        return Response.json({"user_id": user_id, "post_id": post_id, "title": f"Post {post_id} by User {user_id}"})
 
     # POST endpoint that echoes the request body
     @post("/echo")
     async def echo(req):
-        return ServerResponse.text(req.body)
+        return Response.text(req.body)
 
     print("Starting httpy server on port 8000")
     asyncio.run(run(host="127.0.0.1", port=8000))

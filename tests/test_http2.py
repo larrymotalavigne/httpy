@@ -14,7 +14,7 @@ from unittest.mock import patch, MagicMock, AsyncMock
 # Add the parent directory to the path so we can import the package
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-from httpy import ServerRequest, ServerResponse, get
+from httpy import Request, Response, get
 from httpy.routing import ROUTES
 from httpy.http2 import (
     Frame, FrameType, FrameFlag, ErrorCode, 
@@ -134,7 +134,7 @@ class TestHTTP2(unittest.IsolatedAsyncioTestCase):
         # Use AsyncMock for awaitable methods
         mock_writer.drain = AsyncMock()
         # Create a request with HTTP/2 upgrade headers
-        req = ServerRequest(
+        req = Request(
             method="GET",
             path="/",
             headers={
