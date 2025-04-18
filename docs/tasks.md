@@ -92,15 +92,15 @@ This document contains the task list for the HTTPy project, organized by project
 - [x] Basic API documentation
 - [x] Basic usage examples
 - [x] Installation guide
-- [ ] Advanced usage scenarios
-- [ ] Performance tuning guide
+- [x] Advanced usage scenarios
+- [x] Performance tuning guide
 
 ### 4.3 Testing and Quality Assurance
 - [x] Unit tests for core functionality
-- [ ] Integration tests
+- [x] Integration tests
 - [x] Performance tests
-- [ ] Security tests
-- [ ] Cross-platform testing
+- [x] Security tests
+- [x] Cross-platform testing
 
 ## 5. Security and Reliability
 
