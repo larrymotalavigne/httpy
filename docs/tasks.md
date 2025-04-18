@@ -69,16 +69,16 @@ This document contains the task list for the HTTPy project, organized by project
 - [x] Compare with other frameworks (Starlette, Flask)
 
 ### 3.2 Optimization
-- [ ] Identify performance bottlenecks
-- [ ] Optimize request parsing
-- [ ] Optimize routing algorithm
-- [ ] Optimize connection handling
-- [ ] Memory usage optimization
+- [x] Identify performance bottlenecks
+- [x] Optimize request parsing
+- [x] Optimize routing algorithm
+- [x] Optimize connection handling
+- [x] Memory usage optimization
 
 ### 3.3 Concurrency Improvements
-- [ ] Optimize async handling
-- [ ] Implement connection pooling
-- [ ] Improve resource management
+- [x] Optimize async handling
+- [x] Implement connection pooling
+- [x] Improve resource management
 
 ## 4. Deployment and Documentation
 
@@ -129,6 +129,6 @@ This document contains the task list for the HTTPy project, organized by project
 - [x] Create task list (tasks.md)
 
 ### 6.3 Performance
-- [ ] Run comprehensive benchmarks
-- [ ] Identify performance bottlenecks
-- [ ] Implement performance improvements
+- [x] Run comprehensive benchmarks
+- [x] Identify performance bottlenecks
+- [x] Implement performance improvements

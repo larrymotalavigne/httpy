@@ -27,19 +27,19 @@ CRLF = b"\r\n"
 class Response:
     """Represents an HTTP response from the server."""
 
-    def __init__(self, body: str = '', status: int = 200, headers: Optional[Dict[str, Any]] = None):
+    def __init__(self, body: Union[str, bytes] = '', status: int = 200, headers: Optional[Dict[str, Any]] = None):
         """
         Initialize a new HTTP response.
 
         Args:
-            body: The response body as a string
+            body: The response body as a string or bytes
             status: The HTTP status code
             headers: Optional HTTP headers
         """
         self.status = status
         self.body = body
         self.headers = headers or {}
-        self._encoded_body = None  # Cache for encoded body
+        self._encoded_body = body if isinstance(body, bytes) else None  # Cache for encoded body
 
     def to_bytes(self) -> bytes:
         """
@@ -63,7 +63,10 @@ class Response:
 
         # Encode body only once
         if self._encoded_body is None:
-            self._encoded_body = self.body.encode('utf-8')
+            if isinstance(self.body, str):
+                self._encoded_body = self.body.encode('utf-8')
+            else:
+                self._encoded_body = self.body  # Already bytes
 
         # Set content length
         content_length = len(self._encoded_body)
@@ -172,3 +175,20 @@ class Response:
         headers = headers or {}
         headers['Location'] = location
         return Response("", status, headers)
+
+    @staticmethod
+    def binary(data: bytes, status: int = 200, headers: Optional[Dict[str, Any]] = None) -> 'Response':
+        """
+        Create a binary response.
+
+        Args:
+            data: The binary content
+            status: The HTTP status code
+            headers: Optional HTTP headers
+
+        Returns:
+            A Response object with binary content
+        """
+        headers = headers or {}
+        headers['Content-Type'] = 'application/octet-stream'
+        return Response(data, status, headers)

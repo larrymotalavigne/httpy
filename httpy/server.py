@@ -51,7 +51,8 @@ async def handle_socket(client_sock: socket.socket) -> None:
     try:
         # Read the first part of the request to check for upgrades
         data = await reader.readuntil(b"\r\n\r\n")
-        reader._buffer.extendleft([data])  # Put the data back in the buffer
+        # Put the data back in the buffer - use feed_data instead of extendleft
+        reader.feed_data(data)
 
         # Check for WebSocket upgrade
         if b"upgrade: websocket" in data.lower() and b"connection:" in data.lower() and b"upgrade" in data.lower():

@@ -77,6 +77,48 @@ class TestResponse(unittest.TestCase):
         text_response = bytes_response.decode('utf-8')
         self.assertIn("HTTP/1.1 404 Not Found", text_response)
 
+    def test_binary_response(self):
+        """Test creating a binary response."""
+        # Create binary data
+        binary_data = b'\x00\x01\x02\x03\x04\xFF\xFE\xFD\xFC\xFB'
+
+        # Create binary response
+        response = Response.binary(binary_data)
+
+        # Check response properties
+        self.assertEqual(response.body, binary_data)
+        self.assertEqual(response.status, HTTP_200_OK)
+        self.assertEqual(response.headers["Content-Type"], "application/octet-stream")
+
+        # Check that the binary data is preserved in to_bytes()
+        bytes_response = response.to_bytes()
+        self.assertIsInstance(bytes_response, bytes)
+
+        # The response should contain the binary data
+        self.assertIn(binary_data, bytes_response)
+
+    def test_response_with_binary_body(self):
+        """Test response with binary body."""
+        # Create binary data
+        binary_data = b'\x00\x01\x02\x03\x04\xFF\xFE\xFD\xFC\xFB'
+
+        # Create response with binary body directly
+        response = Response(
+            body=binary_data,
+            status=HTTP_200_OK,
+            headers={"Content-Type": "application/octet-stream"}
+        )
+
+        # Check that the body is stored correctly
+        self.assertEqual(response.body, binary_data)
+
+        # Check that _encoded_body is set correctly
+        self.assertEqual(response._encoded_body, binary_data)
+
+        # Check that the binary data is preserved in to_bytes()
+        bytes_response = response.to_bytes()
+        self.assertIn(binary_data, bytes_response)
+
 
 if __name__ == "__main__":
     unittest.main()

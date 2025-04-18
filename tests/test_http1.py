@@ -68,6 +68,55 @@ class TestHTTP1(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(req.headers["Connection"], "keep-alive")
 
     @patch('asyncio.get_event_loop')
+    async def test_handle_http1_post_request_with_binary_data(self, mock_get_loop):
+        """Test handle_http1_request function with POST and binary data."""
+        # Set up mocks
+        mock_loop = AsyncMock()
+        mock_get_loop.return_value = mock_loop
+
+        # Mock socket
+        mock_socket = MagicMock()
+
+        # Mock reader and writer
+        mock_reader = AsyncMock()
+        mock_writer = AsyncMock()
+
+        # Create binary data for the request body
+        binary_data = b'\x00\x01\x02\x03\x04\xFF\xFE\xFD\xFC\xFB'
+        content_length = len(binary_data)
+
+        # Mock sock_recv_into to simulate receiving HTTP request data with binary body
+        call_count = 0
+        def sock_recv_into_side_effect(sock, buffer_view):
+            nonlocal call_count
+            if call_count == 0:
+                # First call: write the request headers into the buffer
+                headers = f"POST /echo HTTP/1.1\r\nHost: localhost\r\nContent-Type: application/octet-stream\r\nContent-Length: {content_length}\r\n\r\n"
+                data = headers.encode('ascii') + binary_data
+                buffer_view[:len(data)] = data
+                call_count += 1
+                return len(data)
+            else:
+                # Subsequent calls: return 0 to indicate end of data
+                return 0
+
+        mock_loop.sock_recv_into.side_effect = sock_recv_into_side_effect
+
+        # Call handle_http1_request
+        keep_alive, req = await handle_http1_request(mock_loop, mock_socket, mock_reader, mock_writer)
+
+        # Check that the request was parsed correctly
+        self.assertEqual(req.method, "POST")
+        self.assertEqual(req.path, "/echo")
+        self.assertEqual(req.headers["Host"], "localhost")
+        self.assertEqual(req.headers["Content-Type"], "application/octet-stream")
+        self.assertEqual(req.headers["Content-Length"], str(content_length))
+
+        # Check that the binary body was preserved
+        self.assertEqual(req.body, binary_data)
+        self.assertTrue(isinstance(req.body, bytes))
+
+    @patch('asyncio.get_event_loop')
     async def test_handle_http1_connection(self, mock_get_loop):
         """Test handle_http1_connection function."""
         # Set up mocks

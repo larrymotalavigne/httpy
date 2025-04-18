@@ -18,7 +18,7 @@ A simple, intuitive HTTP server library for Python.
 ```bash
 # Not yet available on PyPI
 # Clone the repository
-git clone https://github.com/LarryMotaLavigne/httpy.git
+git clone https://github.com/larrymotalavigne/httpy.git
 
 # Install in development mode
 pip install -e .

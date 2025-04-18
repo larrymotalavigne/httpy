@@ -57,7 +57,11 @@ def start_httpy_server(queue):
     # POST endpoint that echoes the request body
     @post("/echo")
     async def echo(req):
-        return Response.text(req.body)
+        # Use binary response for raw data to avoid encoding/decoding issues
+        if isinstance(req.body, bytes):
+            return Response.binary(req.body)
+        else:
+            return Response.text(req.body)
 
     print("Starting httpy server on port 8000")
     asyncio.run(run(host="127.0.0.1", port=8000))

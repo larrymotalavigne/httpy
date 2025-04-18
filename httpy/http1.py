@@ -113,8 +113,19 @@ async def handle_http1_request(
         try:
             # Set a reasonable timeout for reading the body
             while remaining_bytes > 0:
+                # Ensure we don't try to read beyond the buffer size
+                read_size = min(remaining_bytes, len(buffer_view) - buffer_len)
+                if read_size <= 0:
+                    # Buffer is full but we need more data, expand the buffer
+                    new_size = max(len(buffer) * 2, buffer_len + remaining_bytes)
+                    new_buffer = bytearray(new_size)
+                    new_buffer[:buffer_len] = buffer[:buffer_len]
+                    buffer = new_buffer
+                    buffer_view = memoryview(buffer)
+                    read_size = min(remaining_bytes, len(buffer_view) - buffer_len)
+
                 n = await asyncio.wait_for(
-                    loop.sock_recv_into(client_sock, buffer_view[buffer_len:buffer_len + remaining_bytes]),
+                    loop.sock_recv_into(client_sock, buffer_view[buffer_len:buffer_len + read_size]),
                     timeout=5.0  # 5 second timeout
                 )
                 if not n:
@@ -162,8 +173,12 @@ async def handle_http1_request(
             if len(value) == 1:
                 query_params[key] = value[0]
 
-    # Create request object
-    req = Request(method, path, headers, body.decode('utf-8', errors='replace'), {}, query_params)
+    # Create request object - pass raw bytes for POST/PUT methods to handle binary data correctly
+    if method in ["POST", "PUT"]:
+        req = Request(method, path, headers, body, {}, query_params)
+    else:
+        # For other methods, decode to string for backward compatibility
+        req = Request(method, path, headers, body.decode('utf-8', errors='replace'), {}, query_params)
 
     return keep_alive, req
 
