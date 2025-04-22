@@ -88,6 +88,9 @@ async def handle_http1_request(
         match = HEADER_PATTERN.match(line)
         if match:
             key, value = match.groups()
+            # Validate header value - reject if it contains newlines or carriage returns
+            if '\r' in value or '\n' in value:
+                raise ValueError("Newline or carriage return character detected in HTTP status message or header. This is a potential security issue.")
             headers[key] = value
 
     # Get content length and prepare to read body
@@ -230,7 +233,15 @@ async def handle_http1_connection(
 
         except Exception as e:
             try:
-                await loop.sock_sendall(client_sock, Response(f"Internal Server Error: {str(e)}", HTTP_500_INTERNAL_SERVER_ERROR).to_bytes())
+                error_response = Response(f"Internal Server Error: {str(e)}", HTTP_500_INTERNAL_SERVER_ERROR)
+                if keep_alive:
+                    error_response.headers['Connection'] = 'keep-alive'
+                else:
+                    error_response.headers['Connection'] = 'close'
+                await loop.sock_sendall(client_sock, error_response.to_bytes())
             except:
                 pass  # Ignore errors when sending error response
-            break
+
+            # Only break if keep_alive is False
+            if not keep_alive:
+                break
