@@ -20,6 +20,13 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')
 
 from httpy import Request, Response, get, post, run
 
+# Detect availability of pytest-asyncio plugin
+try:
+    import pytest_asyncio  # type: ignore
+    HAS_PYTEST_ASYNCIO = True
+except Exception:
+    HAS_PYTEST_ASYNCIO = False
+
 
 def get_platform_info():
     """Get information about the current platform."""
@@ -240,6 +247,7 @@ def cross_platform_server():
 class TestCrossPlatformHTTP:
     """Test HTTP functionality across platforms."""
 
+    @pytest.mark.skipif(not HAS_PYTEST_ASYNCIO, reason="pytest-asyncio not available")
     @pytest.mark.asyncio
     async def test_platform_info_endpoint(self, cross_platform_server):
         """Test the platform info endpoint."""
@@ -263,6 +271,7 @@ class TestCrossPlatformHTTP:
                         # If we can't parse the JSON, that's okay for now
                         pass
 
+    @pytest.mark.skipif(not HAS_PYTEST_ASYNCIO, reason="pytest-asyncio not available")
     @pytest.mark.asyncio
     async def test_filesystem_endpoint(self, cross_platform_server):
         """Test the filesystem endpoint."""
@@ -287,6 +296,7 @@ class TestCrossPlatformHTTP:
                         # If we can't parse the JSON, that's okay for now
                         pass
 
+    @pytest.mark.skipif(not HAS_PYTEST_ASYNCIO, reason="pytest-asyncio not available")
     @pytest.mark.asyncio
     async def test_environment_endpoint(self, cross_platform_server):
         """Test the environment endpoint."""
@@ -310,6 +320,7 @@ class TestCrossPlatformHTTP:
                         # If we can't parse the JSON, that's okay for now
                         pass
 
+    @pytest.mark.skipif(not HAS_PYTEST_ASYNCIO, reason="pytest-asyncio not available")
     @pytest.mark.asyncio
     async def test_encoding_endpoint(self, cross_platform_server):
         """Test the encoding endpoint."""

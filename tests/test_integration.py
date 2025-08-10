@@ -8,12 +8,22 @@ import asyncio
 import os
 import sys
 import pytest
-import aiohttp
 import subprocess
 import time
 import signal
 import socket
 from pathlib import Path
+
+# Try to import aiohttp; if unavailable, skip this module
+try:
+    import aiohttp
+    AIOHTTP_AVAILABLE = True
+except ImportError:
+    AIOHTTP_AVAILABLE = False
+    aiohttp = None
+
+if not AIOHTTP_AVAILABLE:
+    pytest.skip("aiohttp not available, skipping integration tests", allow_module_level=True)
 
 # Add the parent directory to the path so we can import the package
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
